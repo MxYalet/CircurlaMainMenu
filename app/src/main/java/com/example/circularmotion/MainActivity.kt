@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.circularmotion.ui.theme.CircularMotionTheme
@@ -56,47 +57,56 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainMenuCanvas() {
+
     var showSubMenu by remember { mutableStateOf(false) }
-    val mainCircleRadius = 50.dp
+    val circleRadius = 50.dp
     val subCircleRadius = 20.dp
     val distanceFromCenter = 100.dp
     val subCircles = remember { List(6) { mutableStateOf(Offset.Zero) } }
     val density = LocalDensity.current
 
-    val animationProgress by animateFloatAsState(
-        targetValue = if (showSubMenu) 1f else 0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ), label = ""
-    )
 
     val circleColors = remember {
         List(6) {
             Brush.linearGradient(
                 colors = listOf(
-                    Color(kotlin.random.Random.nextFloat(), kotlin.random.Random.nextFloat(), kotlin.random.Random.nextFloat(), 1f),
-                    Color(kotlin.random.Random.nextFloat(), kotlin.random.Random.nextFloat(), kotlin.random.Random.nextFloat(), 1f)
+                    Color(
+                        kotlin.random.Random.nextFloat(),
+                        kotlin.random.Random.nextFloat(),
+                        kotlin.random.Random.nextFloat(),
+                        1f
+                    ),
+                    Color(
+                        kotlin.random.Random.nextFloat(),
+                        kotlin.random.Random.nextFloat(),
+                        kotlin.random.Random.nextFloat(),
+                        1f
+                    )
                 )
             )
         }
     }
+    val animationProgress by animateFloatAsState(
+        targetValue = if (showSubMenu) 1f else 0f,
+        label = "",
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        )
+    )
 
     Box(
-        contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxSize()
             .background(Color.LightGray)
     ) {
-        val center = remember { mutableStateOf(Offset.Zero) }
 
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
+        var center = remember { mutableStateOf(Offset.Zero) }
+
+        Canvas(modifier = Modifier.fillMaxSize()) {
             center.value = Offset(size.width / 2, size.height / 2)
 
-            drawCircle(color = Color.Blue, radius = mainCircleRadius.toPx(), center = center.value)
+            drawCircle(Color.Blue, circleRadius.toPx(), center = center.value)
 
             if (showSubMenu) {
                 subCircles.forEachIndexed { index, offsetState ->
@@ -104,7 +114,7 @@ fun MainMenuCanvas() {
                     val next = subCircles[(index + 1) % subCircles.size].value
 
                     drawLine(
-                        color = Color.Gray,
+                        color = Color.Black,
                         start = current,
                         end = next,
                         strokeWidth = 5f
@@ -126,10 +136,10 @@ fun MainMenuCanvas() {
                         radius = subCircleRadius.toPx(),
                         center = current
                     )
+
                 }
             }
         }
-
         if (showSubMenu) {
             subCircles.forEachIndexed { index, offsetState ->
                 val boxSizeDp = subCircleRadius * 2
@@ -159,12 +169,11 @@ fun MainMenuCanvas() {
                 )
             }
         }
-
         Text("Main Menu", color = Color.White, modifier = Modifier.align(Alignment.Center))
 
         Box(
             modifier = Modifier
-                .size(mainCircleRadius * 2)
+                .size(circleRadius * 2)
                 .align(Alignment.Center)
                 .pointerInput(Unit) {
                     detectTapGestures {
@@ -182,13 +191,13 @@ fun MainMenuCanvas() {
                     }
                 }
         )
+
     }
 }
-
 fun lerpAction(start: Float, stop: Float, fraction: Float): Float = (1 - fraction) * start + fraction * stop
 
 @Preview
 @Composable
-fun previewMessage(){
+fun Preview(){
     MainMenuCanvas()
 }
